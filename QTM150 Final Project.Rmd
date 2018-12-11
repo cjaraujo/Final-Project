@@ -1,0 +1,126 @@
+---
+title: "QTM 150 Final Project"
+author: "CJ Araujo"
+date: "11/27/2018"
+output: html_document
+---
+#**Working Out at Emory University**
+
+##Why I chose to investigate this question:
+The question I would like to explore for my QTM 150 Final Project is how does one's year at Emory University affect their body weight, how often they workout at the gym, and what they like to do at the gym.  Recently this semester, I have realized the importance of maintaining an active and healthy lifestyle to complement my academic endeavors; and I have found that regularly going to the gym has benefited my life in so many different ways.  When I first started going to the gym, I elicited help from multiple sources to make sure that my workouts were efficient, and I was accomplishing what I wanted to do in the gym.  I was taught multiple exercise, each with a certain objective ranging from gaining muscle mass to losing stubborn body fat.  
+
+When this QTM project was first assigned, I was intrigued to find out the relationship working out has on the Emory community: specifically focusing on how one's school year affects how often they visit the gym and how much they weigh.  Therefore, I decided to survey Emory University students and record my findings.
+
+```{r pressure, echo = FALSE, fig.cap = "Figure 1 - Emory George W. Woodruff P.E. Center | Source: Photo by Jason Oh", out.width = '100%'}
+knitr::include_graphics("EmoryGym.jpg")
+```
+#Data Collection Methodology
+  In order to collect my data, I surveyed 20 students from each grade who regularly worked out.  I collected my data from a Google Survey and from one on one conversations.  I sorted my data into four categories: School_Year, Weight, WPW (Workouts per Week), and Gym_Activities.  The types and values of each are as follows:
+
+* **School_Year** - corresponds to the students year at Emory University
+* **Weight** - corresponds to the students weight in pounds
+* **WPW** - corresponds to the average number of times the student goes to the gym
+* **Gym_Activities** - corresponds to what the student usually does in the gym
+
+After I collected my data i converted my excel file into a csv and uploaded it into RStudio.
+
+#Loading packages and initializing the data
+  First, I loaded ggplot2 and dplyr into my RMardown file so that I could use these packages with my data visualization.  Then I imported my data and summarized gym_data to get an understanding of what I was working with.
+```{r}
+#Load GGPlot
+library(ggplot2)
+library(dplyr)
+
+# Initialize the data
+gym_data <- read.csv("Gym Data.csv")
+summary(gym_data)
+str(gym_data)
+```
+
+#Cleaning up the data
+  Next I reorganized the factor variable School_Year so that the school years were placed in increasing order.  Then I created and named bins to further organize the data collected in the Weight variable.
+```{r}
+gym_data$School_Year1 <- factor(gym_data$School_Year, levels(gym_data$School_Year)[c(1, 2, 3, 4)])
+
+summary(gym_data$Weight)
+is.numeric(gym_data$Weight)
+
+gym_data$Weight_Coded <- factor(NA, levels = c("100 - 130", "131 - 150", "151 - 180"))
+gym_data$Weight_Coded[gym_data$Weight <= 130] <- "100 - 130"
+gym_data$Weight_Coded[gym_data$Weight > 130 & gym_data$Weight <= 150] <- "131 - 150"
+gym_data$Weight_Coded[gym_data$Weight >= 151] <- "151 - 180"
+table(gym_data$Weight_Coded)
+
+```
+
+#Data Visualization
+  Next I constructed Pie Charts to visualize all four of my variables: School_Year, Weight, WPW, and Gym_Activities.
+```{r}
+pie1 <- c(sum(gym_data$School_Year == "Freshman")/nrow(gym_data),sum(gym_data$School_Year == "Sophomore")/nrow(gym_data), sum(gym_data$School_Year == "Junior")/nrow(gym_data), sum(gym_data$School_Year == "Senior")/nrow(gym_data))
+label1 <- c("Freshman", "Sophomore", "Junior", "Senior")
+pct <- round(pie1/sum(pie1)*100)
+label1 <- paste(label1, pct)
+label1 <- paste(label1, "%", sep=" ")
+pie(pie1, labels = label1, main="Student Year")
+
+pie2 <- c(sum(gym_data$Weight_Coded == "100 - 130")/nrow(gym_data),sum(gym_data$Weight_Coded == "131 - 150")/nrow(gym_data), sum(gym_data$Weight_Coded == "151 - 180")/nrow(gym_data))
+label2 <- c("100 - 130", "131 - 150", "151 - 180")
+pct <- round(pie2/sum(pie2)*100)
+label2 <- paste(label2, pct)
+label2 <- paste(label2, "%", sep=" ")
+pie(pie2, labels = label2, main="Weight Category")
+
+pie3 <- c(sum(gym_data$WPW == 1)/nrow(gym_data), sum(gym_data$WPW == 2)/nrow(gym_data), sum(gym_data$WPW == 3)/nrow(gym_data), sum(gym_data$WPW == 4)/nrow(gym_data), sum(gym_data$WPW == 5)/nrow(gym_data))
+label3 <- c("One", "Two", "Three", "Four", "Five")
+pct <- round(pie3/sum(pie3)*100)
+label3 <- paste(label3, pct)
+label3 <- paste(label3, "%", sep=" ")
+pie(pie3, labels = label3, main="Workouts Per Week")
+
+pie4 <- c(sum(gym_data$Gym_Activities == "Strength")/nrow(gym_data), sum(gym_data$Gym_Activities == "Cardio")/nrow(gym_data))
+label4 <- c("Strength", "Cardio")
+pct <- round(pie4/sum(pie4)*100)
+label4 <- paste(label4, pct)
+label4 <- paste(label4, "%", sep=" ")
+pie(pie4, labels = label4, main="Type of Workouts")
+```
+
+After looking at the data, it is clear that the majority of my sample size weighs above 151 pounds and workout three or more times per week.  Furthermore, the majority of my sample prefers doing Cardio rather than Strength training.  Next, I wanted to break down these variables and reference them to the student's school year.
+
+#Two Variable Analysis
+  For my first analysis, I compared how many times a student works out per week to their academic school year.
+```{r}
+gym_data$School_Year1 <- factor(gym_data$School_Year, levels(gym_data$School_Year)[c(1, 4, 2, 3)])
+
+ggplot(gym_data, aes(x = School_Year1, y = WPW)) +
+  geom_boxplot() +
+  labs(x = "School Year", y = "Workouts per Week", title = "Workouts per Week by School Year")
+```
+
+I found that as school year increases, the number of workouts decreases at a consistent rate.  Meaning that Freshmen workout the most, then Sophomores, then Juniors, then Seniors.  My rationale for this correlation is that Upperclassmen are busier than underclassmen and therefore do not have as much time to go to the gym.
+
+#Part 2
+  Next I used pipe operators to further analyze Workouts per Week and School Year.  I found the average number of workouts per week for each school year and graphed them below.
+```{r}
+gym_data %>%
+  group_by(School_Year1) %>%
+  summarise(average = mean(WPW)) %>%
+  ggplot(aes(x=School_Year1, y=average)) + geom_point() +
+  labs(x = "School Year", y = "Average Workouts per Week", title = "Average Workouts per Week by School Year")
+```
+
+Once again, it is clear that as school year increases, the number of times student go to the gym decreases.
+
+#Part 3
+Next, I compared Weight to School Year.
+```{r}
+ggplot(gym_data, aes(x = School_Year1, y = Weight)) +
+  geom_boxplot() +
+  labs(x = "School Year", y = "Weight", title = "Weight by School Year")
+```
+
+Here I found that as school year increases, weight also increases.
+
+#Conclusion
+  After examining my data, I found that as a student progresses through their time at Emory, they tend to workout less.  Freshmen on average tend to workout around 4.25 times per week and seniors only work out around 2.5 times per week.  Furthermore, by looking at the Weight by School Year boxplot, it is clear that as you increase in school year, you gain more weight.  Freshmen weigh, on average, 153 pounds and seniors weigh around 167 pounds.  This shows that there is a direct impact on the number of times you work out per week and how much you weigh.  Since freshmen students workout out more, they will inevitably weigh less than seniors.  
+
